@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Made with ❤️ by Circus anjay</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="/eel.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Domain Bantai Bantai</h2>
+    <div id="domain-list"></div>
+
+    <button class="save" onclick="save()">💾 Save</button>
+    <button class="start" onclick="eel.start_cycle()();">🚀 Run Attack Cycle</button>
+    <button class="circuz" onclick="maximizeHeight()">↕️ Cek logs gang!</button>
+    <button class="stop" onclick="eel.stop_app()();">🛑 Mutilasi</button>
+    <button class="restart" onclick="eel.restart_cycle()();">🔁 Restart</button>
+
+    <h3>Log Output</h3>
+    <div id="log"></div>
+    <div id="countdown" style="margin-top: 10px; font-weight: bold; color: #f97316;"></div>
+  </div>
+
+  <script>
+    let inputs = [];
+    let countdownInterval = null;
+
+    async function load() {
+      const domains = await eel.load_domains()();
+      const container = document.getElementById('domain-list');
+      container.innerHTML = "";
+      inputs = [];
+
+      for (let i = 0; i < 8; i++) {
+        const input = document.createElement('input');
+        input.type = "text";
+        input.value = domains[i] || "";
+        input.placeholder = "http://example.com";
+        container.appendChild(input);
+        inputs.push(input);
+      }
+    }
+
+    async function save() {
+      const values = inputs.map(i => i.value.trim());
+      await eel.save_domains(values)();
+      display_log("[💾] Domains saved and will apply next cycle."); 
+    }
+
+    function maximizeHeight() {
+      const currentWidth = window.outerWidth;
+      const maxHeight = screen.availHeight;
+      window.resizeTo(currentWidth, maxHeight);
+      window.moveTo(window.screenX, 0);
+    }
+
+    eel.expose(display_log);
+    function display_log(msg) {
+      const logBox = document.getElementById("log");
+      logBox.innerText += msg + "\n================================== \n";
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function startCountdown(seconds) {
+      const countdownEl = document.getElementById("countdown");
+      let remaining = seconds;
+
+      if (countdownInterval !== null) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+
+      countdownInterval = setInterval(() => {
+        const min = Math.floor(remaining / 60);
+        const sec = remaining % 60;
+        countdownEl.innerText = `🔁 Restarting in ${min}:${sec.toString().padStart(2, '0')}...`;
+        if (remaining <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.innerText = "";
+        }
+        remaining--;
+      }, 1000);
+    }
+
+    eel.expose(startCountdown);
+
+    load();
+  </script>
+</body>
+</html>

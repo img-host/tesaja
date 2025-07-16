@@ -53,45 +53,87 @@ def wait_for_layer7(timeout=30):
     time.sleep(3)
 
 def solve_turnstile():
+    """Send challenge to 2captcha and return the solution token."""
     log("[🔍] Solving Cloudflare Turnstile...")
-    url = "http://2captcha.com/in.php"
-    payload = {
-        'key': API_KEY,
-        'method': 'turnstile',
-        'sitekey': SITE_KEY,
-        'pageurl': SITE_URL,
-        'json': 1
-    }
-    resp = requests.post(url, data=payload).json()
-    if resp.get("status") != 1:
-        log("[❌] 2Captcha request failed.")
+
+    try:
+        resp = requests.post(
+            "https://2captcha.com/in.php",
+            data={
+                "key": API_KEY,
+                "method": "turnstile",
+                "sitekey": SITE_KEY,
+                "pageurl": SITE_URL,
+                "json": 1,
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        log(f"[❌] 2Captcha request failed: {e}")
         return None
 
-    req_id = resp.get("request")
-    fetch_url = f"http://2captcha.com/res.php?key={API_KEY}&action=get&id={req_id}&json=1"
+    if data.get("status") != 1:
+        log(f"[❌] 2Captcha error: {data.get('request')}")
+        return None
 
-    for _ in range(30):
+    req_id = data.get("request")
+
+    for _ in range(24):  # poll for ~2 minutes
         time.sleep(5)
-        res = requests.get(fetch_url).json()
-        if res.get("status") == 1:
+        try:
+            res = requests.get(
+                "https://2captcha.com/res.php",
+                params={
+                    "key": API_KEY,
+                    "action": "get",
+                    "id": req_id,
+                    "json": 1,
+                },
+                timeout=30,
+            )
+            res.raise_for_status()
+            result = res.json()
+        except Exception as e:
+            log(f"[❌] Error fetching captcha result: {e}")
+            continue
+
+        if result.get("status") == 1:
             log("[✅] Captcha solved.")
-            return res.get("request")
+            return result.get("request")
+
+        if result.get("request") != "CAPCHA_NOT_READY":
+            log(f"[❌] 2Captcha error: {result.get('request')}")
+            return None
+
         log("[...] Waiting for captcha result...")
 
     log("[❌] Timed out waiting for captcha solution.")
     return None
 
 def inject_token(token):
-    driver.execute_script("""
-        document.querySelector('iframe[src*="challenges.cloudflare.com"]')
-            .contentWindow.postMessage({
-                eventId: "challenge-complete",
-                payload: {
-                    token: arguments[0],
-                    e: Date.now()
-                }
-            }, "*");
-    """, token)
+    """Inject the solved token into the page."""
+    script = """
+        const txt = document.querySelector('textarea[name="cf-turnstile-response"]');
+        if (txt) {
+            txt.style.display = 'block';
+            txt.value = arguments[0];
+            txt.dispatchEvent(new Event('change'));
+        } else {
+            const iframe = document.querySelector('iframe[src*="challenges.cloudflare.com"]');
+            if (iframe) {
+                iframe.contentWindow.postMessage({
+                    eventId: 'challenge-complete',
+                    payload: {
+                        token: arguments[0],
+                        e: Date.now()
+                    }
+                }, '*');
+            }
+        }
+    """
+    driver.execute_script(script, token)
 
 def simulate_human_interaction():
     try:

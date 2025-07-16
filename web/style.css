@@ -1,0 +1,88 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f9fafb;
+  color: #1f2937;
+  margin: 0;
+  padding: 20px;
+}
+
+h2, h3 {
+  margin-top: 0;
+  color: #111827;
+}
+
+.container {
+  max-width: 500px;
+  margin: auto;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  padding: 20px;
+}
+
+input[type="text"] {
+  width: 90%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #f3f4f6;
+}
+
+button {
+  padding: 10px 15px;
+  margin-right: 10px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+button.save {
+  background-color: #3b82f6;
+  color: white;
+}
+
+button.start {
+  background-color: #10b981;
+  color: white;
+  margin-bottom: 5px;
+}
+
+button.circuz {
+  background-color: #f66d0f;
+  color: white;
+  margin-bottom: 15px;
+}
+
+#log {
+  white-space: pre-line;
+  background: #111827;
+  color: #00ff22;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-top: 15px;
+  height: 300px;
+  overflow-y: auto;
+}
+button.stop {
+  background-color: #ef4444;
+  color: white;
+}
+button.restart {
+  background-color: #facc15;
+  color: black;
+}
+
